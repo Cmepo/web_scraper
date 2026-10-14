@@ -115,10 +115,6 @@ def extract_page_data(html: str, page_url: str):
 
 
 
-
-
-
-
         
 
 
