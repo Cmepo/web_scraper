@@ -1,11 +1,12 @@
-import sys, requests, asyncio
+import sys, requests, asyncio, os, json
 from urllib.parse import urlsplit
 from crawl import * 
 from asyncsetup import AsyncCrawler
+from json_report import write_json_report
 
 WEB_PAGE_URL = "https://learnwebscraping.dev/practice/ecommerce/"
 WEB_PAGE_RESOURCE = "https://learnwebscraping.dev/practice/ecommerce/products/ashenfang-longsword-fan-1001/"
-
+FILENAME = "report.json"
 
 """ def get_html(url:str):
     html = requests.get(url, headers={"User-Agent": "BootCrawler/1.0"})
@@ -44,7 +45,13 @@ async def crawl_site_async(BASE_URL):
     page_data = {}
     visited = set()
     max_concurrency = 5
-    args = [base_url, base_domain, page_data, visited, max_concurrency]
+    max_pages = 2
+    if len(sys.argv) > 2:
+        max_concurrency = int(sys.argv[2])
+        if len(sys.argv) > 3:
+            max_pages = int(sys.argv[3])
+
+    args = [base_url, base_domain, page_data, visited, max_concurrency, max_pages]
     async with AsyncCrawler(*args) as crawler:
         return await crawler.crawl()
         
@@ -54,7 +61,7 @@ async def main():
     if len(sys.argv) < 2:
         print("no website provided")
         sys.exit(1)
-    elif len(sys.argv) > 2:
+    elif len(sys.argv) > 4:
         print("too many arguments provided")
         sys.exit(1)
 
@@ -65,9 +72,17 @@ async def main():
     #crawl_page(BASE_URL, page_data=data)
     page_data = await crawl_site_async(base_url)
 
-    print(f"Pages found: {len(page_data)}")
-    for page in page_data.values():
-        print(page)
+    #print(f"Pages found: {len(page_data)}")
+    #for page in page_data.values():
+    #    print(page)
+
+    write_json_report(page_data, FILENAME)
+
+    if os.path.exists(f"{FILENAME}"):
+        print("json report created")
+    with open(FILENAME, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
